@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          Int        @id @default(autoincrement())
+  sku         String     @unique // Código de producto
+  name        String
+  description String?
+  category    String     // ej. Anillos, Collares, Pulseras
+  price       Float      // Precio de venta
+  cost        Float      // Costo de compra/producción
+  stock       Int        @default(0)
+  imageUrl    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  saleItems   SaleItem[]
+}
+
+model Sale {
+  id          Int        @id @default(autoincrement())
+  date        DateTime   @default(now())
+  totalAmount Float      // Total calculado al momento de la venta
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  items       SaleItem[]
+}
+
+model SaleItem {
+  id          Int      @id @default(autoincrement())
+  saleId      Int
+  productId   Int
+  quantity    Int
+  priceAtSale Float    // Precio en el momento de la venta (por si cambia después)
+  
+  sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id])
+}
+
+model Expense {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @default(now())
+  amount      Float
+  description String
+  category    String   // ej. Servicios, Proveedores, Salarios
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

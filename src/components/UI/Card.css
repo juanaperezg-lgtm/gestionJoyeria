@@ -1,0 +1,6 @@
+.ui-card {
+  padding: 24px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+}
