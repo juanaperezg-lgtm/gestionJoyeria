@@ -1,0 +1,293 @@
+# 💎 Aura Joyeros — Plan de Desarrollo Completo
+
+Sistema de gestión integral para joyería. Aplicación de pago: debe ser **hermosa, funcional y profesional**.
+
+## Estado Actual
+
+La app tiene una base sólida: tema oscuro/dorado elegante, layout con sidebar + header, y 4 páginas (Dashboard, Inventario, Ventas, Gastos). Sin embargo, **todo es solo lectura** — los botones "Nueva Joya", "Nueva Venta", "Registrar Gasto" no hacen nada. No hay modales, formularios, búsqueda funcional, ni edición/eliminación real.
+
+![Estado actual de la aplicación](C:/Users/perza/.gemini/antigravity/brain/5f016440-adfb-4c00-bb22-aa28d63a05db/current_app_screenshot_1778200384323.webp)
+
+---
+
+## Arquitectura del Proyecto
+
+```mermaid
+graph TB
+    subgraph Frontend["Frontend (React + Vite)"]
+        A[App.jsx + Router] --> B[Layout: Sidebar + Header]
+        B --> C[Dashboard]
+        B --> D[Inventario]
+        B --> E[Ventas]
+        B --> F[Gastos]
+        B --> G[Reportes - NUEVO]
+        B --> H[Configuración - NUEVO]
+    end
+    
+    subgraph Backend["Backend (Express + Prisma)"]
+        I[index.js] --> J[/api/inventory]
+        I --> K[/api/sales]
+        I --> L[/api/expenses]
+        I --> M[/api/dashboard]
+        I --> N[/api/reports - NUEVO]
+    end
+    
+    subgraph DB["Base de Datos (SQLite)"]
+        O[(Product)]
+        P[(Sale + SaleItem)]
+        Q[(Expense)]
+        R[(Client - NUEVO)]
+    end
+    
+    Frontend -->|fetch API| Backend
+    Backend -->|Prisma ORM| DB
+```
+
+---
+
+## Fases de Desarrollo
+
+### Fase 1 — Funcionalidad CRUD Completa (Core)
+> Hacer que todo lo que existe realmente funcione. Esta es la prioridad #1.
+
+#### Backend
+
+##### [MODIFY] [schema.prisma](file:///c:/Users/perza/gestionJoyeria/server/prisma/schema.prisma)
+- Agregar modelo `Client` (nombre, teléfono, email, notas)
+- Agregar campo `clientId` opcional en `Sale` (relación con Client)
+- Agregar campo `paymentMethod` en `Sale` (Efectivo, Tarjeta, Transferencia)
+- Agregar campo `status` en `Sale` (Completado, Pendiente, Cancelado)
+
+##### [MODIFY] [inventory.js](file:///c:/Users/perza/gestionJoyeria/server/routes/inventory.js)
+- Agregar búsqueda por nombre/SKU/categoría con query params (`?search=anillo&category=Anillos`)
+- Agregar validación de datos en POST/PUT (campos requeridos, tipos correctos)
+
+##### [MODIFY] [sales.js](file:///c:/Users/perza/gestionJoyeria/server/routes/sales.js)
+- Agregar filtros por fecha, cliente y estado
+- Agregar endpoint `DELETE /api/sales/:id` para cancelar/eliminar ventas
+- Restaurar stock al eliminar una venta
+
+##### [MODIFY] [expenses.js](file:///c:/Users/perza/gestionJoyeria/server/routes/expenses.js)
+- Agregar endpoint `PUT /api/expenses/:id` para editar gastos
+- Agregar filtros por fecha y categoría
+
+##### [NEW] `server/routes/clients.js`
+- CRUD completo para clientes (GET, POST, PUT, DELETE)
+- Búsqueda por nombre/teléfono
+
+##### [MODIFY] [dashboard.js](file:///c:/Users/perza/gestionJoyeria/server/routes/dashboard.js)
+- Métricas más completas: ventas hoy, esta semana, este mes
+- Top 5 productos más vendidos
+- Comparativa con período anterior (tendencia)
+- Total de clientes
+
+#### Frontend — Componentes Modales
+
+##### [NEW] `src/components/UI/Modal.jsx` + `Modal.css`
+- Modal reutilizable con animación de entrada/salida
+- Overlay con blur, bordes dorados, cierre con Escape y click fuera
+- Tamaños: `sm`, `md`, `lg`
+
+##### [NEW] `src/components/UI/Toast.jsx` + `Toast.css`
+- Notificaciones tipo toast (éxito, error, info)
+- Aparecen arriba a la derecha con animación
+- Se cierran automáticamente en 3-5 segundos
+
+##### [NEW] `src/components/UI/ConfirmDialog.jsx`
+- Diálogo de confirmación elegante para eliminar registros
+- Usa el Modal internamente
+
+##### [NEW] `src/components/UI/EmptyState.jsx`
+- Componente para cuando no hay datos ("Aún no has registrado ventas")
+- Icono + mensaje + botón de acción
+
+##### [NEW] `src/components/UI/LoadingSpinner.jsx`
+- Spinner dorado elegante para estados de carga
+
+#### Frontend — Formularios por Página
+
+##### [NEW] `src/components/Forms/ProductForm.jsx` + `ProductForm.css`
+- Formulario completo: SKU, nombre, descripción, categoría (dropdown), precio venta, costo, stock, imagen URL
+- Validación en tiempo real (campo requerido, precio > 0, SKU único)
+- Modo crear y modo editar (reutilizable)
+- Cálculo automático de margen de ganancia
+
+##### [NEW] `src/components/Forms/SaleForm.jsx` + `SaleForm.css`
+- Selección de productos del inventario (dropdown con búsqueda)
+- Agregar múltiples items a la venta
+- Calcular total automáticamente
+- Seleccionar cliente (opcional) y método de pago
+- Verificar stock disponible antes de confirmar
+
+##### [NEW] `src/components/Forms/ExpenseForm.jsx` + `ExpenseForm.css`
+- Monto, descripción, categoría (dropdown), fecha
+- Modo crear y editar
+
+##### [NEW] `src/components/Forms/ClientForm.jsx` + `ClientForm.css`
+- Nombre, teléfono, email, notas
+- Modo crear y editar
+
+#### Frontend — Páginas Actualizadas
+
+##### [MODIFY] [Inventory.jsx](file:///c:/Users/perza/gestionJoyeria/src/pages/Inventory.jsx)
+- Botón "Nueva Joya" abre modal con ProductForm
+- Botones editar/eliminar funcionales
+- Búsqueda y filtros funcionales
+- Estado vacío cuando no hay productos
+- Loading spinner mientras carga
+
+##### [MODIFY] [Sales.jsx](file:///c:/Users/perza/gestionJoyeria/src/pages/Sales.jsx)
+- Botón "Nueva Venta" abre modal con SaleForm
+- Filtros por fecha y estado funcionales
+- Método de pago real (no hardcoded)
+- Estado de venta real
+
+##### [MODIFY] [Expenses.jsx](file:///c:/Users/perza/gestionJoyeria/src/pages/Expenses.jsx)
+- Botón "Registrar Gasto" abre modal con ExpenseForm
+- Editar y eliminar gastos
+- Total dinámico del mes (no hardcoded $22,600)
+
+##### [MODIFY] [Dashboard.jsx](file:///c:/Users/perza/gestionJoyeria/src/pages/Dashboard.jsx)
+- Métricas reales y dinámicas
+- Ganancia neta calculada correctamente
+- Top productos más vendidos
+- Gráfico de tendencia (opcional, con canvas simple)
+
+---
+
+### Fase 2 — Clientes y Mejoras UX
+
+##### [NEW] `src/pages/Clients.jsx` + `Clients.css`
+- Página completa de gestión de clientes
+- Tabla con nombre, teléfono, email, total de compras
+- Historial de compras por cliente
+- Búsqueda y filtros
+
+##### [MODIFY] [Sidebar.jsx](file:///c:/Users/perza/gestionJoyeria/src/components/Layout/Sidebar.jsx)
+- Agregar enlace a "Clientes" con icono Users
+
+##### [MODIFY] [App.jsx](file:///c:/Users/perza/gestionJoyeria/src/App.jsx)
+- Agregar ruta `/clients`
+
+##### [MODIFY] [index.js](file:///c:/Users/perza/gestionJoyeria/server/index.js)
+- Registrar ruta `/api/clients`
+
+---
+
+### Fase 3 — Reportes y Pulido Visual
+
+##### [NEW] `src/pages/Reports.jsx` + `Reports.css`
+- Resumen financiero por período (diario, semanal, mensual)
+- Tabla resumen de ventas vs gastos
+- Productos más y menos vendidos
+- Exportar a CSV
+
+##### [NEW] `server/routes/reports.js`
+- Endpoints para reportes con filtros de fecha
+- Agregaciones de ventas, gastos y ganancias
+
+##### Pulido Visual General
+- Micro-animaciones en cards al aparecer (fade-in + slide-up)
+- Transiciones suaves entre páginas
+- Hover effects refinados en tablas y botones
+- Responsive: sidebar colapsable para tablets/móviles
+- Estado de carga (skeleton screens) en todas las tablas
+
+---
+
+## Esquema de Base de Datos Final
+
+```mermaid
+erDiagram
+    Product {
+        Int id PK
+        String sku UK
+        String name
+        String description
+        String category
+        Float price
+        Float cost
+        Int stock
+        String imageUrl
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    
+    Client {
+        Int id PK
+        String name
+        String phone
+        String email
+        String notes
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    
+    Sale {
+        Int id PK
+        DateTime date
+        Float totalAmount
+        String paymentMethod
+        String status
+        Int clientId FK
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    
+    SaleItem {
+        Int id PK
+        Int saleId FK
+        Int productId FK
+        Int quantity
+        Float priceAtSale
+    }
+    
+    Expense {
+        Int id PK
+        DateTime date
+        Float amount
+        String description
+        String category
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    
+    Client ||--o{ Sale : "compras"
+    Sale ||--|{ SaleItem : "items"
+    Product ||--o{ SaleItem : "vendido en"
+```
+
+---
+
+## Resumen de Archivos
+
+| Fase | Nuevos | Modificados |
+|------|--------|-------------|
+| Fase 1 - CRUD | 10 archivos (Modal, Toast, Confirm, EmptyState, Spinner, ProductForm, SaleForm, ExpenseForm, ClientForm, clients route) | 8 archivos (schema, 4 routes, Inventory, Sales, Expenses, Dashboard) |
+| Fase 2 - Clientes | 2 archivos (Clients page + CSS) | 3 archivos (Sidebar, App, index.js) |
+| Fase 3 - Reportes | 3 archivos (Reports page + CSS, reports route) | Varios (animaciones y responsive) |
+
+---
+
+## Verificación
+
+### Después de cada fase
+1. Ejecutar `npm run dev` y verificar que todo compile sin errores
+2. Probar cada CRUD completo en el navegador (crear, ver, editar, eliminar)
+3. Verificar que los datos persisten después de refrescar la página
+4. Confirmar que los totales del Dashboard reflejan los datos reales
+
+### Tests manuales clave
+- Crear un producto → aparece en inventario → crear una venta con ese producto → stock se reduce → Dashboard refleja la venta
+- Eliminar una venta → stock se restaura
+- Crear un gasto → total de gastos del Dashboard se actualiza
+- Buscar productos por nombre → tabla se filtra correctamente
+
+---
+
+> [!IMPORTANT]
+> ## Decisiones que necesitan tu aprobación
+> 1. **¿Quieres la funcionalidad de Clientes?** Algunos dueños de joyería venden a clientes anónimos, otros quieren llevar el registro. Si la quieres, la implementamos en Fase 2.
+> 2. **¿Quieres Reportes/Exportar a CSV?** Es útil pero añade complejidad. Lo dejé para Fase 3.
+> 3. **¿Hay alguna funcionalidad adicional que necesites?** Por ejemplo: sistema de apartados, garantías, reparaciones, múltiples usuarios con roles, etc.
+> 4. **¿Empiezo con la Fase 1 directamente?** Es la que da el mayor impacto inmediato.
