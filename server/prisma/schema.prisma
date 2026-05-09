@@ -7,6 +7,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String   // bcrypt hash
+  name      String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+}
+
 model Product {
   id          Int        @id @default(autoincrement())
   sku         String     @unique // Código de producto
@@ -24,13 +33,15 @@ model Product {
 }
 
 model Sale {
-  id          Int        @id @default(autoincrement())
-  date        DateTime   @default(now())
-  totalAmount Float      // Total calculado al momento de la venta
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id            Int        @id @default(autoincrement())
+  date          DateTime   @default(now())
+  totalAmount   Float      // Total calculado al momento de la venta
+  clientName    String     @default("Cliente en Tienda")
+  paymentMethod String     @default("Efectivo")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
-  items       SaleItem[]
+  items         SaleItem[]
 }
 
 model SaleItem {

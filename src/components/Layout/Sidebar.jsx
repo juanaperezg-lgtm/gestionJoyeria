@@ -1,15 +1,24 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { useNavigate, NavLink } from 'react-router-dom';
 import { LayoutDashboard, Gem, DollarSign, CreditCard, LogOut } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
   const menuItems = [
     { path: '/dashboard', name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { path: '/inventory', name: 'Inventario', icon: <Gem size={20} /> },
     { path: '/sales', name: 'Ventas', icon: <DollarSign size={20} /> },
     { path: '/expenses', name: 'Gastos', icon: <CreditCard size={20} /> },
   ];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <aside className="sidebar">
@@ -35,7 +44,7 @@ const Sidebar = () => {
       </nav>
 
       <div className="sidebar-footer">
-        <button className="logout-btn">
+        <button className="logout-btn" onClick={handleLogout}>
           <LogOut size={20} />
           <span>Cerrar Sesión</span>
         </button>
