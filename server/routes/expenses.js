@@ -6,7 +6,24 @@ const prisma = new PrismaClient();
 // Get all expenses
 router.get('/', async (req, res) => {
   try {
+    const { startDate, endDate, category } = req.query;
+
+    let whereClause = {};
+
+    if (startDate || endDate) {
+      whereClause.date = {};
+      if (startDate) whereClause.date.gte = new Date(startDate);
+      if (endDate) {
+        let end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        whereClause.date.lte = end;
+      }
+    }
+
+    if (category) whereClause.category = category;
+
     const expenses = await prisma.expense.findMany({
+      where: whereClause,
       orderBy: { date: 'desc' }
     });
     res.json(expenses);
@@ -24,13 +41,15 @@ router.post('/', async (req, res) => {
     if (!description || !category || amount == null) {
       return res.status(400).json({ error: 'Los campos monto, descripción y categoría son obligatorios.' });
     }
-    if (typeof amount !== 'number' || amount <= 0) {
+
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
       return res.status(400).json({ error: 'El monto debe ser un número mayor a 0.' });
     }
 
     const expense = await prisma.expense.create({
       data: {
-        amount,
+        amount: numAmount,
         description,
         category,
         date: date ? new Date(date) : new Date()
@@ -52,14 +71,16 @@ router.put('/:id', async (req, res) => {
     if (!description || !category || amount == null) {
       return res.status(400).json({ error: 'Los campos monto, descripción y categoría son obligatorios.' });
     }
-    if (typeof amount !== 'number' || amount <= 0) {
+
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
       return res.status(400).json({ error: 'El monto debe ser un número mayor a 0.' });
     }
 
     const expense = await prisma.expense.update({
       where: { id: Number(id) },
       data: {
-        amount,
+        amount: numAmount,
         description,
         category,
         date: date ? new Date(date) : undefined

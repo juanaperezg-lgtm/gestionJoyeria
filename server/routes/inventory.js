@@ -6,7 +6,23 @@ const prisma = new PrismaClient();
 // Get all products
 router.get('/', async (req, res) => {
   try {
+    const { search, category } = req.query;
+
+    let whereClause = {};
+
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: search } },
+        { sku: { contains: search } }
+      ];
+    }
+
+    if (category) {
+      whereClause.category = category;
+    }
+
     const products = await prisma.product.findMany({
+      where: whereClause,
       orderBy: { updatedAt: 'desc' }
     });
     res.json(products);
@@ -24,13 +40,18 @@ router.post('/', async (req, res) => {
     if (!sku || !name || !category || price == null || cost == null) {
       return res.status(400).json({ error: 'Los campos SKU, nombre, categoría, precio y costo son obligatorios.' });
     }
-    if (typeof price !== 'number' || price < 0) {
+
+    const numPrice = parseFloat(price);
+    const numCost = parseFloat(cost);
+    const numStock = stock != null ? parseInt(stock, 10) : 0;
+
+    if (isNaN(numPrice) || numPrice < 0) {
       return res.status(400).json({ error: 'El precio debe ser un número positivo.' });
     }
-    if (typeof cost !== 'number' || cost < 0) {
+    if (isNaN(numCost) || numCost < 0) {
       return res.status(400).json({ error: 'El costo debe ser un número positivo.' });
     }
-    if (stock != null && (typeof stock !== 'number' || stock < 0 || !Number.isInteger(stock))) {
+    if (isNaN(numStock) || numStock < 0) {
       return res.status(400).json({ error: 'El stock debe ser un número entero positivo.' });
     }
 
@@ -45,9 +66,9 @@ router.post('/', async (req, res) => {
         sku,
         name,
         category,
-        price,
-        cost,
-        stock: stock ?? 0,
+        price: numPrice,
+        cost: numCost,
+        stock: numStock,
         description: description || null,
         imageUrl: imageUrl || null
       },
@@ -68,11 +89,19 @@ router.put('/:id', async (req, res) => {
     if (!sku || !name || !category || price == null || cost == null) {
       return res.status(400).json({ error: 'Los campos SKU, nombre, categoría, precio y costo son obligatorios.' });
     }
-    if (typeof price !== 'number' || price < 0) {
+
+    const numPrice = parseFloat(price);
+    const numCost = parseFloat(cost);
+    const numStock = stock != null ? parseInt(stock, 10) : 0;
+
+    if (isNaN(numPrice) || numPrice < 0) {
       return res.status(400).json({ error: 'El precio debe ser un número positivo.' });
     }
-    if (typeof cost !== 'number' || cost < 0) {
+    if (isNaN(numCost) || numCost < 0) {
       return res.status(400).json({ error: 'El costo debe ser un número positivo.' });
+    }
+    if (isNaN(numStock) || numStock < 0) {
+      return res.status(400).json({ error: 'El stock debe ser un número entero positivo.' });
     }
 
     // Check unique SKU (excluding current product)
@@ -89,9 +118,9 @@ router.put('/:id', async (req, res) => {
         sku,
         name,
         category,
-        price,
-        cost,
-        stock: stock ?? 0,
+        price: numPrice,
+        cost: numCost,
+        stock: numStock,
         description: description || null,
         imageUrl: imageUrl || null
       },
@@ -115,8 +144,8 @@ router.delete('/:id', async (req, res) => {
       where: { productId: Number(id) }
     });
     if (salesCount > 0) {
-      return res.status(409).json({ 
-        error: `No se puede eliminar este producto porque tiene ${salesCount} venta(s) asociada(s). Considere poner el stock en 0 en su lugar.` 
+      return res.status(409).json({
+        error: `No se puede eliminar este producto porque tiene ${salesCount} venta(s) asociada(s). Considere poner el stock en 0 en su lugar.`
       });
     }
 

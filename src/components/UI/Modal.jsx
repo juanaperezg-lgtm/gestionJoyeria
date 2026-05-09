@@ -2,26 +2,23 @@ import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import './Modal.css';
 
-const Modal = ({ isOpen, onClose, title, children, size = 'medium' }) => {
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
+const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === 'Escape') onClose();
     };
+    
     if (isOpen) {
-      window.addEventListener('keydown', handleEsc);
+      document.addEventListener('keydown', handleEsc);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
-    return () => window.removeEventListener('keydown', handleEsc);
+    
+    return () => {
+      document.removeEventListener('keydown', handleEsc);
+      document.body.style.overflow = '';
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -29,12 +26,12 @@ const Modal = ({ isOpen, onClose, title, children, size = 'medium' }) => {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div 
-        className={`modal-container modal-${size}`} 
+        className={`modal-container modal-content glass-panel modal-${size}`} 
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h2 className="modal-title">{title}</h2>
-          <button className="modal-close-btn" onClick={onClose}>
+          <h2 className="modal-title font-serif text-gold">{title}</h2>
+          <button className="modal-close-btn icon-btn" onClick={onClose} aria-label="Close modal">
             <X size={20} />
           </button>
         </div>

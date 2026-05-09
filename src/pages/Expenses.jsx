@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, Trash2, TrendingDown, Wallet, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Plus, Search, Trash2, Wallet, AlertTriangle, CheckCircle } from 'lucide-react';
 import Card from '../components/UI/Card';
 import Modal from '../components/UI/Modal';
 
@@ -29,7 +29,9 @@ const Expenses = () => {
       setLoading(true);
       const [eRes, sRes] = await Promise.all([fetch('/api/expenses'), fetch('/api/dashboard/stats')]);
       if (!eRes.ok) throw new Error('Error al cargar gastos');
-      setExpenses(await eRes.json());
+      const expensesData = await eRes.json();
+      setExpenses(expensesData);
+      
       if (sRes.ok) {
         const stats = await sRes.json();
         setMonthlyTotal(stats.monthlyExpenses || 0);
@@ -38,6 +40,7 @@ const Expenses = () => {
     finally { setLoading(false); }
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   const openCreate = () => {
@@ -84,84 +87,68 @@ const Expenses = () => {
       </div>
 
       <div className="page-header d-flex-between">
-        <div><h1 className="page-title">Gastos y Compras</h1><p className="page-subtitle">Control de gastos operativos y compra de materiales.</p></div>
+        <div>
+          <h1 className="page-title">Gastos y Compras</h1>
+          <p className="page-subtitle">Control de gastos operativos y compra de materiales. Total del mes: ${monthlyTotal}</p>
+        </div>
         <button className="btn-primary flex-center gap-2" onClick={openCreate} style={{ background: 'linear-gradient(135deg, #6b0000 0%, var(--color-danger) 100%)', color: 'var(--color-pearl)' }}>
           <Plus size={18} /><span>Registrar Gasto</span>
         </button>
       </div>
 
-      <div className="stats-grid" style={{ marginBottom: '20px' }}>
-        <Card className="stat-card" style={{ borderColor: 'rgba(139, 0, 0, 0.2)' }}>
-          <div className="stat-icon-wrapper" style={{ backgroundColor: 'rgba(139, 0, 0, 0.1)', color: 'var(--color-danger)' }}>
-            <TrendingDown size={24} />
-          </div>
-          <div className="stat-info">
-            <span className="stat-title">Gastos del Mes</span>
-            <h3 className="stat-value" style={{ color: 'var(--color-danger)' }}>${monthlyTotal.toFixed(2)}</h3>
-          </div>
-        </Card>
-        <Card className="stat-card">
-          <div className="stat-icon-wrapper"><Wallet size={24} /></div>
-          <div className="stat-info">
-            <span className="stat-title">Total de Gastos</span>
-            <h3 className="stat-value">${expenses.reduce((s, e) => s + e.amount, 0).toFixed(2)}</h3>
-          </div>
-        </Card>
-      </div>
-
-      <Card>
-        <div className="inventory-toolbar">
-          <div className="search-box"><Search size={18} className="text-muted" /><input type="text" placeholder="Buscar gastos..." value={search} onChange={e => setSearch(e.target.value)} /></div>
-        </div>
-
-        {loading ? (
-          <div className="loading-container"><div className="loading-spinner"></div><span className="loading-text">Cargando gastos...</span></div>
-        ) : filtered.length === 0 ? (
-          <div className="empty-state"><div className="empty-state-icon"><Wallet size={32} /></div><h3>{search ? 'Sin resultados' : 'No hay gastos'}</h3><p>{search ? 'No se encontraron gastos.' : 'Registra tu primer gasto.'}</p></div>
-        ) : (
-          <div className="table-responsive">
-            <table className="luxury-table">
-              <thead><tr><th>ID</th><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Monto</th><th>Acciones</th></tr></thead>
-              <tbody>{filtered.map(exp => (
-                <tr key={exp.id}>
-                  <td className="text-muted">#{exp.id}</td>
-                  <td>{new Date(exp.date).toLocaleDateString()}</td>
-                  <td className="font-bold">{exp.description}</td>
-                  <td><span className="stock-badge" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: 'none' }}>{exp.category}</span></td>
-                  <td className="font-serif font-bold" style={{ color: 'var(--color-danger)' }}>-${exp.amount?.toFixed(2)}</td>
-                  <td><button className="action-btn delete" onClick={() => openDel(exp)} title="Eliminar"><Trash2 size={16} /></button></td>
-                </tr>
-              ))}</tbody>
-            </table>
-          </div>
-        )}
-      </Card>
-
-      {/* New Expense Modal */}
-      <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Registrar Gasto" size="medium">
-        <form className="modal-form" onSubmit={submit}>
-          {err && <div className="form-error">{err}</div>}
-          <div className="form-group full-width"><label>Concepto / Descripción</label><input type="text" value={form.description} onChange={e => set('description', e.target.value)} placeholder="Ej: Alquiler local comercial" required /></div>
-          <div className="form-row">
-            <div className="form-group"><label>Monto ($)</label><input type="number" step="0.01" min="0.01" value={form.amount} onChange={e => set('amount', e.target.value)} placeholder="0.00" required /></div>
-            <div className="form-group"><label>Categoría</label><select value={form.category} onChange={e => set('category', e.target.value)}>{EXPENSE_CATS.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-          </div>
-          <div className="form-row"><div className="form-group"><label>Fecha</label><input type="date" value={form.date} onChange={e => set('date', e.target.value)} /></div><div className="form-group"></div></div>
-          <div className="modal-actions"><button type="button" className="btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button><button type="submit" className="btn-save" disabled={saving}>{saving ? 'Guardando...' : 'Registrar Gasto'}</button></div>
-        </form>
-      </Modal>
-
-      {/* Delete Confirmation */}
-      <Modal isOpen={showDel} onClose={() => setShowDel(false)} title="Eliminar Gasto" size="small">
-        <div className="confirm-dialog">
-          <div className="confirm-icon"><AlertTriangle size={28} /></div>
-          <p>¿Eliminar este gasto?</p>
-          {deleting && <p className="confirm-item-name">{deleting.description} — ${deleting.amount?.toFixed(2)}</p>}
-          {err && <div className="form-error" style={{ textAlign: 'left', marginTop: '12px' }}>{err}</div>}
-        </div>
-        <div className="modal-actions"><button className="btn-cancel" onClick={() => setShowDel(false)}>Cancelar</button><button className="btn-danger" onClick={del} disabled={saving}>{saving ? 'Eliminando...' : 'Eliminar'}</button></div>
-      </Modal>
+  <Card>
+    <div className="inventory-toolbar">
+      <div className="search-box"><Search size={18} className="text-muted" /><input type="text" placeholder="Buscar gastos..." value={search} onChange={e => setSearch(e.target.value)} /></div>
     </div>
+
+    {loading ? (
+      <div className="loading-container"><div className="loading-spinner"></div><span className="loading-text">Cargando gastos...</span></div>
+    ) : filtered.length === 0 ? (
+      <div className="empty-state"><div className="empty-state-icon"><Wallet size={32} /></div><h3>{search ? 'Sin resultados' : 'No hay gastos'}</h3><p>{search ? 'No se encontraron gastos.' : 'Registra tu primer gasto.'}</p></div>
+    ) : (
+      <div className="table-responsive">
+        <table className="luxury-table">
+          <thead><tr><th>ID</th><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Monto</th><th>Acciones</th></tr></thead>
+          <tbody>{filtered.map(exp => (
+            <tr key={exp.id}>
+              <td className="text-muted">#{exp.id}</td>
+              <td>{new Date(exp.date).toLocaleDateString()}</td>
+              <td className="font-bold">{exp.description}</td>
+              <td><span className="stock-badge" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: 'none' }}>{exp.category}</span></td>
+              <td className="font-serif font-bold" style={{ color: 'var(--color-danger)' }}>-${exp.amount?.toFixed(2)}</td>
+              <td><button className="action-btn delete" onClick={() => openDel(exp)} title="Eliminar"><Trash2 size={16} /></button></td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    )}
+  </Card>
+
+{/* New Expense Modal */ }
+<Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Registrar Gasto" size="medium">
+  <form className="modal-form" onSubmit={submit}>
+    {err && <div className="form-error">{err}</div>}
+    <div className="form-group full-width"><label>Concepto / Descripción</label><input type="text" value={form.description} onChange={e => set('description', e.target.value)} placeholder="Ej: Alquiler local comercial" required /></div>
+    <div className="form-row">
+      <div className="form-group"><label>Monto ($)</label><input type="number" step="0.01" min="0.01" value={form.amount} onChange={e => set('amount', e.target.value)} placeholder="0.00" required /></div>
+      <div className="form-group"><label>Categoría</label><select value={form.category} onChange={e => set('category', e.target.value)}>{EXPENSE_CATS.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+    </div>
+    <div className="form-row"><div className="form-group"><label>Fecha</label><input type="date" value={form.date} onChange={e => set('date', e.target.value)} /></div><div className="form-group"></div></div>
+    <div className="modal-actions"><button type="button" className="btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button><button type="submit" className="btn-save" disabled={saving}>{saving ? 'Guardando...' : 'Registrar Gasto'}</button></div>
+  </form>
+</Modal>
+
+{/* Delete Confirmation */ }
+<Modal isOpen={showDel} onClose={() => setShowDel(false)} title="Eliminar Gasto" size="small">
+  <div className="confirm-dialog">
+    <div className="confirm-icon"><AlertTriangle size={28} /></div>
+    <p>¿Eliminar este gasto?</p>
+    {deleting && <p className="confirm-item-name">{deleting.description} — ${deleting.amount?.toFixed(2)}</p>}
+    {err && <div className="form-error" style={{ textAlign: 'left', marginTop: '12px' }}>{err}</div>}
+  </div>
+  <div className="modal-actions"><button className="btn-cancel" onClick={() => setShowDel(false)}>Cancelar</button><button className="btn-danger" onClick={del} disabled={saving}>{saving ? 'Eliminando...' : 'Eliminar'}</button></div>
+</Modal>
+    </div >
   );
 };
 
