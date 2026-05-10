@@ -1,6 +1,15 @@
 .ui-card {
-  padding: 24px;
+  padding: 20px;
   border-radius: 12px;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Prevent children from overflowing the card */
+  min-width: 0; /* Allow card to shrink in flex layouts */
+}
+
+@media (max-width: 768px) {
+  .ui-card {
+    padding: 14px;
+    border-radius: 10px;
+  }
 }

@@ -275,3 +275,255 @@ button:disabled {
   cursor: not-allowed;
   pointer-events: none;
 }
+
+/* ============================================================
+   TABLE CONTAINMENT — works on ALL screen sizes
+   ============================================================ */
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+.luxury-table {
+  width: 100%;
+  table-layout: auto;
+}
+
+/* ============================================================
+   MOBILE RESPONSIVENESS
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* Sidebar: hidden, using bottom nav instead */
+  .sidebar {
+    display: none !important;
+  }
+
+  /* Header */
+  .header {
+    padding: 10px 14px;
+    height: auto;
+    min-height: 56px;
+    gap: 10px;
+  }
+
+  .header-search {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+  }
+
+  .user-info {
+    display: none;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Page headers */
+  .page-header,
+  .page-header.d-flex-between {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .page-header .btn-primary,
+  .page-header button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Stats grid */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .stat-icon-wrapper {
+    width: 38px;
+    height: 38px;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+
+  .stat-title {
+    font-size: 0.72rem;
+  }
+
+  .stat-trend {
+    font-size: 0.68rem;
+  }
+
+  /* Tables — scroll inside container */
+  .luxury-table {
+    min-width: 600px;
+  }
+
+  .luxury-table th,
+  .luxury-table td {
+    padding: 10px 8px;
+    font-size: 0.8rem;
+  }
+
+  /* Search toolbar */
+  .inventory-toolbar {
+    flex-direction: column !important;
+    gap: 10px;
+    align-items: stretch !important;
+  }
+
+  .search-box {
+    max-width: 100%;
+  }
+
+  .inventory-toolbar .btn-outline,
+  .inventory-toolbar button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Dashboard content gaps */
+  .dashboard {
+    gap: 16px;
+  }
+
+  .dashboard-content {
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  /* Cards */
+  .glass-panel {
+    border-radius: 10px;
+  }
+
+  .card-header {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+  }
+
+  .card-header h3 {
+    font-size: 0.9rem;
+  }
+
+  /* Modals — full width on mobile */
+  .modal-overlay {
+    padding: 10px;
+    align-items: flex-end;
+  }
+
+  .modal-container,
+  .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 85vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modal-header {
+    padding: 18px 18px 12px;
+  }
+
+  .modal-title {
+    font-size: 1.15rem;
+  }
+
+  .modal-body {
+    padding: 14px 18px 18px;
+    overflow-y: auto;
+    max-height: calc(85vh - 60px);
+  }
+
+  .modal-form .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .modal-actions button {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Sale item rows on mobile */
+  .sale-item-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .sale-item-price {
+    text-align: left;
+  }
+
+  /* Toast on mobile */
+  .toast-container {
+    left: 10px;
+    right: 10px;
+    top: 10px;
+  }
+
+  .toast {
+    max-width: 100%;
+    font-size: 0.82rem;
+  }
+
+  /* Notification dropdown */
+  .notif-dropdown {
+    width: calc(100vw - 28px);
+    right: -10px;
+  }
+
+  /* Chart card */
+  .chart-card {
+    margin-top: 14px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .stat-card {
+    flex-direction: row;
+    gap: 14px;
+    padding: 12px;
+  }
+
+  .page-title {
+    font-size: 1.3rem;
+  }
+
+  .luxury-table th,
+  .luxury-table td {
+    padding: 8px 6px;
+    font-size: 0.75rem;
+  }
+}

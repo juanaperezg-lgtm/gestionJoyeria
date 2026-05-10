@@ -3,6 +3,8 @@ import { DollarSign, TrendingUp, TrendingDown, Package, ArrowUp, ArrowDown, Aler
 import Card from '../components/UI/Card';
 import LoadingSpinner from '../components/UI/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -20,14 +22,15 @@ const Dashboard = () => {
   });
   const [recentSales, setRecentSales] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { authFetch } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [statsRes, salesRes] = await Promise.all([
-          fetch('/api/dashboard/stats'),
-          fetch('/api/sales')
+          authFetch('/api/dashboard/stats'),
+          authFetch('/api/sales')
         ]);
         
         if (statsRes.ok) {
@@ -183,6 +186,35 @@ const Dashboard = () => {
             )}
           </div>
         </Card>
+
+        {statsData.chartData && statsData.chartData.length > 0 && (
+          <Card className="chart-card" style={{ marginTop: '20px' }}>
+            <div className="card-header">
+              <h3>Ventas Últimos 7 Días</h3>
+            </div>
+            <div style={{ width: '100%', height: 300 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={statsData.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--color-gold)" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="var(--color-gold)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="day" stroke="var(--text-secondary)" tick={{fill: 'var(--text-secondary)'}} />
+                  <YAxis stroke="var(--text-secondary)" tick={{fill: 'var(--text-secondary)'}} tickFormatter={(value) => `$${value}`} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'var(--color-charcoal)', borderColor: 'rgba(212, 175, 55, 0.2)', color: 'var(--color-pearl)' }}
+                    itemStyle={{ color: 'var(--color-gold)' }}
+                    formatter={(value) => [`$${value}`, 'Ventas']}
+                  />
+                  <Area type="monotone" dataKey="amount" stroke="var(--color-gold)" fillOpacity={1} fill="url(#colorSales)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        )}
 
         {statsData.lowStockProducts && statsData.lowStockProducts.length > 0 && (
           <Card className="recent-sales-card" style={{ marginTop: '20px', borderColor: 'rgba(230, 168, 23, 0.3)' }}>

@@ -1,14 +1,15 @@
 .header {
-  height: 80px;
+  min-height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 40px;
+  padding: 0 28px;
   background-color: var(--color-black);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   position: sticky;
   top: 0;
   z-index: 50;
+  gap: 16px;
 }
 
 .header-search {
@@ -17,7 +18,9 @@
   background-color: var(--color-charcoal);
   border-radius: 20px;
   padding: 8px 16px;
-  width: 300px;
+  flex: 1;
+  max-width: 340px;
+  min-width: 0;
   border: 1px solid rgba(212, 175, 55, 0.1);
   transition: border-color 0.3s ease;
 }

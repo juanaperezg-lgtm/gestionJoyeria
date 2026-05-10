@@ -1,17 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, Trash2, Wallet, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Plus, Search, Trash2, Wallet, AlertTriangle, CheckCircle, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import Card from '../components/UI/Card';
 import Modal from '../components/UI/Modal';
+import { useAuth } from '../context/AuthContext';
+import { Edit } from 'lucide-react';
 
 const EXPENSE_CATS = ['Operativos', 'Proveedores', 'Salarios', 'Servicios', 'Marketing', 'Mantenimiento', 'Impuestos', 'Otro'];
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
+  const { authFetch } = useAuth();
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [monthlyTotal, setMonthlyTotal] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [showDel, setShowDel] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [form, setForm] = useState({ amount: '', description: '', category: 'Operativos', date: '' });
   const [err, setErr] = useState('');
@@ -27,7 +33,7 @@ const Expenses = () => {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [eRes, sRes] = await Promise.all([fetch('/api/expenses'), fetch('/api/dashboard/stats')]);
+      const [eRes, sRes] = await Promise.all([authFetch('/api/expenses'), authFetch('/api/dashboard/stats')]);
       if (!eRes.ok) throw new Error('Error al cargar gastos');
       const expensesData = await eRes.json();
       setExpenses(expensesData);
@@ -44,7 +50,13 @@ const Expenses = () => {
   useEffect(() => { load(); }, [load]);
 
   const openCreate = () => {
+    setEditing(null);
     setForm({ amount: '', description: '', category: 'Operativos', date: new Date().toISOString().split('T')[0] });
+    setErr(''); setShowForm(true);
+  };
+  const openEdit = (exp) => {
+    setEditing(exp);
+    setForm({ amount: String(exp.amount), description: exp.description, category: exp.category, date: new Date(exp.date).toISOString().split('T')[0] });
     setErr(''); setShowForm(true);
   };
   const openDel = (exp) => { setDeleting(exp); setErr(''); setShowDel(true); };
@@ -55,9 +67,9 @@ const Expenses = () => {
     if (!d.description || !d.category) { setErr('Descripción y categoría son obligatorios.'); setSaving(false); return; }
     if (isNaN(d.amount) || d.amount <= 0) { setErr('El monto debe ser mayor a 0.'); setSaving(false); return; }
     try {
-      const r = await fetch('/api/expenses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
+      const r = await authFetch(editing ? `/api/expenses/${editing.id}` : '/api/expenses', { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
       if (!r.ok) { const e = await r.json(); throw new Error(e.error); }
-      toast('Gasto registrado exitosamente');
+      toast(editing ? 'Gasto actualizado' : 'Gasto registrado exitosamente');
       setShowForm(false); load();
     } catch (e) { setErr(e.message); } finally { setSaving(false); }
   };
@@ -65,7 +77,7 @@ const Expenses = () => {
   const del = async () => {
     setSaving(true); setErr('');
     try {
-      const r = await fetch(`/api/expenses/${deleting.id}`, { method: 'DELETE' });
+      const r = await authFetch(`/api/expenses/${deleting.id}`, { method: 'DELETE' });
       if (!r.ok) { const e = await r.json(); throw new Error(e.error); }
       toast('Gasto eliminado');
       setShowDel(false); load();
@@ -79,6 +91,29 @@ const Expenses = () => {
     const t = search.toLowerCase();
     return exp.description.toLowerCase().includes(t) || exp.category.toLowerCase().includes(t) || new Date(exp.date).toLocaleDateString().includes(t);
   });
+
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    doc.text('Reporte de Gastos - Aura Joyeros', 14, 15);
+    
+    const tableData = filtered.map(exp => [
+      `#${exp.id}`,
+      new Date(exp.date).toLocaleDateString(),
+      exp.description,
+      exp.category,
+      `$${exp.amount?.toFixed(2)}`
+    ]);
+
+    autoTable(doc, {
+      startY: 25,
+      head: [['ID', 'Fecha', 'Concepto', 'Categoría', 'Monto']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [139, 0, 0] } // Dark red color
+    });
+
+    doc.save('gastos_aura_joyeros.pdf');
+  };
 
   return (
     <div className="expenses dashboard">
@@ -97,8 +132,11 @@ const Expenses = () => {
       </div>
 
   <Card>
-    <div className="inventory-toolbar">
+    <div className="inventory-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <div className="search-box"><Search size={18} className="text-muted" /><input type="text" placeholder="Buscar gastos..." value={search} onChange={e => setSearch(e.target.value)} /></div>
+      <button className="btn-outline flex-center gap-2" onClick={exportPDF} style={{ padding: '8px 16px', fontSize: '0.8rem', borderColor: 'var(--color-danger)', color: 'var(--color-danger)' }}>
+        <Download size={16} /> Exportar PDF
+      </button>
     </div>
 
     {loading ? (
@@ -116,7 +154,7 @@ const Expenses = () => {
               <td className="font-bold">{exp.description}</td>
               <td><span className="stock-badge" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: 'none' }}>{exp.category}</span></td>
               <td className="font-serif font-bold" style={{ color: 'var(--color-danger)' }}>-${exp.amount?.toFixed(2)}</td>
-              <td><button className="action-btn delete" onClick={() => openDel(exp)} title="Eliminar"><Trash2 size={16} /></button></td>
+              <td><div className="action-buttons"><button className="action-btn edit" onClick={() => openEdit(exp)} title="Editar"><Edit size={16} /></button><button className="action-btn delete" onClick={() => openDel(exp)} title="Eliminar"><Trash2 size={16} /></button></div></td>
             </tr>
           ))}</tbody>
         </table>
@@ -125,7 +163,7 @@ const Expenses = () => {
   </Card>
 
 {/* New Expense Modal */ }
-<Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Registrar Gasto" size="medium">
+<Modal isOpen={showForm} onClose={() => setShowForm(false)} title={editing ? "Editar Gasto" : "Registrar Gasto"} size="medium">
   <form className="modal-form" onSubmit={submit}>
     {err && <div className="form-error">{err}</div>}
     <div className="form-group full-width"><label>Concepto / Descripción</label><input type="text" value={form.description} onChange={e => set('description', e.target.value)} placeholder="Ej: Alquiler local comercial" required /></div>
@@ -134,7 +172,7 @@ const Expenses = () => {
       <div className="form-group"><label>Categoría</label><select value={form.category} onChange={e => set('category', e.target.value)}>{EXPENSE_CATS.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
     </div>
     <div className="form-row"><div className="form-group"><label>Fecha</label><input type="date" value={form.date} onChange={e => set('date', e.target.value)} /></div><div className="form-group"></div></div>
-    <div className="modal-actions"><button type="button" className="btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button><button type="submit" className="btn-save" disabled={saving}>{saving ? 'Guardando...' : 'Registrar Gasto'}</button></div>
+    <div className="modal-actions"><button type="button" className="btn-cancel" onClick={() => setShowForm(false)}>Cancelar</button><button type="submit" className="btn-save" disabled={saving}>{saving ? 'Guardando...' : (editing ? 'Actualizar' : 'Registrar Gasto')}</button></div>
   </form>
 </Modal>
 

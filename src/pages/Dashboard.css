@@ -1,68 +1,73 @@
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 24px;
 }
 
 .page-header {
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
 .page-title {
-  font-size: 2.2rem;
-  margin-bottom: 5px;
+  font-size: 1.8rem;
+  margin-bottom: 4px;
 }
 
 .page-subtitle {
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
 }
 
 .stat-card {
   flex-direction: row;
   align-items: center;
-  gap: 20px;
-  padding: 20px;
+  gap: 16px;
+  padding: 18px;
 }
 
 .stat-icon-wrapper {
-  width: 50px;
-  height: 50px;
+  width: 46px;
+  height: 46px;
   border-radius: 10px;
   background-color: rgba(212, 175, 55, 0.1);
   color: var(--color-gold);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .stat-info {
   display: flex;
   flex-direction: column;
+  min-width: 0; /* Allow text to truncate */
 }
 
 .stat-title {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .stat-value {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   color: var(--color-pearl);
-  margin-bottom: 5px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat-trend {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 
 .stat-trend.positive {
@@ -78,11 +83,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
+/* Table container — MUST constrain width */
 .table-responsive {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
 }
 
 .luxury-table {
@@ -93,18 +101,19 @@
 
 .luxury-table th {
   text-align: left;
-  padding: 15px;
+  padding: 12px 14px;
   color: var(--text-secondary);
   font-weight: 500;
   text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 1px;
+  font-size: 0.75rem;
+  letter-spacing: 0.8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
 }
 
 .luxury-table td {
-  padding: 15px;
-  font-size: 0.95rem;
+  padding: 12px 14px;
+  font-size: 0.88rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 

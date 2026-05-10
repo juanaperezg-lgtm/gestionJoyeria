@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Gem, DollarSign, CreditCard, LogOut } from 'lucide-react';
+import { LayoutDashboard, Gem, DollarSign, CreditCard, Users, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
 
@@ -13,6 +13,7 @@ const Sidebar = () => {
     { path: '/inventory', name: 'Inventario', icon: <Gem size={20} /> },
     { path: '/sales', name: 'Ventas', icon: <DollarSign size={20} /> },
     { path: '/expenses', name: 'Gastos', icon: <CreditCard size={20} /> },
+    { path: '/clients', name: 'Clientes', icon: <Users size={20} /> },
   ];
 
   const handleLogout = () => {

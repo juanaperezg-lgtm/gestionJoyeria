@@ -1,12 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, Trash2, ShoppingBag, AlertTriangle, CheckCircle, X as XIcon } from 'lucide-react';
+import { Plus, Search, Trash2, ShoppingBag, AlertTriangle, CheckCircle, X as XIcon, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import Card from '../components/UI/Card';
 import Modal from '../components/UI/Modal';
+import { useAuth } from '../context/AuthContext';
 
 const Sales = () => {
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { authFetch } = useAuth();
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showDel, setShowDel] = useState(false);
@@ -27,7 +31,7 @@ const Sales = () => {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [sRes, pRes] = await Promise.all([fetch('/api/sales'), fetch('/api/inventory')]);
+      const [sRes, pRes] = await Promise.all([authFetch('/api/sales'), authFetch('/api/inventory')]);
       if (!sRes.ok || !pRes.ok) throw new Error('Error al cargar datos');
       setSales(await sRes.json());
       setProducts(await pRes.json());
@@ -75,7 +79,7 @@ const Sales = () => {
     });
 
     try {
-      const r = await fetch('/api/sales', {
+      const r = await authFetch('/api/sales', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ totalAmount: calcTotal(), items, clientName: clientName.trim() || 'Cliente en Tienda', paymentMethod })
@@ -89,7 +93,7 @@ const Sales = () => {
   const del = async () => {
     setSaving(true); setErr('');
     try {
-      const r = await fetch(`/api/sales/${deleting.id}`, { method: 'DELETE' });
+      const r = await authFetch(`/api/sales/${deleting.id}`, { method: 'DELETE' });
       if (!r.ok) { const e = await r.json(); throw new Error(e.error); }
       toast('Venta eliminada (stock restaurado)');
       setShowDel(false); load();
@@ -104,6 +108,30 @@ const Sales = () => {
 
   const availableProducts = products.filter(p => p.stock > 0);
 
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    doc.text('Reporte de Ventas - Aura Joyeros', 14, 15);
+    
+    const tableData = filtered.map(s => [
+      `#${s.id}`,
+      new Date(s.date).toLocaleDateString(),
+      s.clientName || 'Cliente en Tienda',
+      s.items?.map(i => `${i.product?.name} (${i.quantity})`).join(', '),
+      `$${s.totalAmount?.toFixed(2)}`,
+      s.paymentMethod || 'Efectivo'
+    ]);
+
+    autoTable(doc, {
+      startY: 25,
+      head: [['ID', 'Fecha', 'Cliente', 'Artículos', 'Total', 'Método']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [212, 175, 55] } // Gold color
+    });
+
+    doc.save('ventas_aura_joyeros.pdf');
+  };
+
   return (
     <div className="sales dashboard">
       <div className="toast-container">
@@ -116,8 +144,11 @@ const Sales = () => {
       </div>
 
       <Card>
-        <div className="inventory-toolbar">
+        <div className="inventory-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div className="search-box"><Search size={18} className="text-muted" /><input type="text" placeholder="Buscar por ID, cliente o producto..." value={search} onChange={e => setSearch(e.target.value)} /></div>
+          <button className="btn-outline flex-center gap-2" onClick={exportPDF} style={{ padding: '8px 16px', fontSize: '0.8rem' }}>
+            <Download size={16} /> Exportar PDF
+          </button>
         </div>
 
         {loading ? (
