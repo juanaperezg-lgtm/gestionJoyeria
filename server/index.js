@@ -26,7 +26,7 @@ app.use('/api/clients', authMiddleware, require('./routes/clients'));
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist')));
 
-  app.get('*', (req, res) => {
+  app.get('/:path(.*)', (req, res) => {
     res.sendFile(path.join(__dirname, '../dist/index.html'));
   });
 }
@@ -35,7 +35,7 @@ const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  
+
   // Keep-alive mechanism for Render free tier
   const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
   if (RENDER_URL) {
