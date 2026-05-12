@@ -8,6 +8,7 @@
     "dev:backend": "cd server && node index.js",
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "build": "vite build",
+    "start": "cd server && node index.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
