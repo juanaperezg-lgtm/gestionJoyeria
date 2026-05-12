@@ -31,7 +31,7 @@ const path = require('path');
 app.use(express.static(path.join(__dirname, '../dist')));
 
 // Cualquier ruta que no sea de la API (/api/*), sirve el index.html de React
-app.get('*', (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
