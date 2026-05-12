@@ -9,7 +9,7 @@
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "build": "vite build",
     "start": "cd server && node index.js",
-    "postinstall": "cd server && npm install",
+    "postinstall": "cd server && npm install && cd .. && npm run build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
