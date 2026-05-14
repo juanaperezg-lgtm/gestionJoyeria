@@ -9,7 +9,8 @@ const API = '/api/inventory';
 const CATS = ['Anillos', 'Collares', 'Pulseras', 'Aretes', 'Relojes', 'Cadenas', 'Dijes', 'Broches', 'Otro'];
 const empty = { sku: '', name: '', category: 'Anillos', description: '', price: '', cost: '', stock: '' };
 
-const Inventory = () =>居  const { authFetch } = useAuth();
+const Inventory = () => {
+  const { authFetch } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
