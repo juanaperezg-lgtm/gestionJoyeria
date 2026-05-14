@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const SaleForm = ({ onSubmit, onCancel }) => {
+  const { authFetch } = useAuth();
   const [products, setProducts] = useState([]);
   const [items, setItems] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('Efectivo');
   
   useEffect(() => {
-    fetch('/api/inventory').then(res => res.json()).then(data => setProducts(data.filter(p => p.stock > 0)));
-  }, []);
+    authFetch('/api/inventory').then(res => res.json()).then(data => setProducts(data.filter(p => p.stock > 0)));
+  }, [authFetch]);
 
   const addItem = () => {
     if (products.length > 0) {

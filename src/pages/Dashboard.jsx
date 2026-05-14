@@ -3,9 +3,11 @@ import { DollarSign, TrendingUp, TrendingDown, Package, ArrowUp, ArrowDown, Aler
 import Card from '../components/UI/Card';
 import LoadingSpinner from '../components/UI/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 
 const Dashboard = () => {
+  const { authFetch } = useAuth();
   const [statsData, setStatsData] = useState({
     totalSales: 0,
     salesTrend: 0,
@@ -26,8 +28,8 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         const [statsRes, salesRes] = await Promise.all([
-          fetch('/api/dashboard/stats'),
-          fetch('/api/sales')
+          authFetch('/api/dashboard/stats'),
+          authFetch('/api/sales')
         ]);
         
         if (statsRes.ok) {

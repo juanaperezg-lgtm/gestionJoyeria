@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Trash2, ShoppingBag, AlertTriangle, CheckCircle, X as XIcon } from 'lucide-react';
 import Card from '../components/UI/Card';
 import Modal from '../components/UI/Modal';
+import { useAuth } from '../context/AuthContext';
 
 const Sales = () => {
+  const { authFetch } = useAuth();
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +29,7 @@ const Sales = () => {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [sRes, pRes] = await Promise.all([fetch('/api/sales'), fetch('/api/inventory')]);
+      const [sRes, pRes] = await Promise.all([authFetch('/api/sales'), authFetch('/api/inventory')]);
       if (!sRes.ok || !pRes.ok) throw new Error('Error al cargar datos');
       setSales(await sRes.json());
       setProducts(await pRes.json());
@@ -75,7 +77,7 @@ const Sales = () => {
     });
 
     try {
-      const r = await fetch('/api/sales', {
+      const r = await authFetch('/api/sales', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ totalAmount: calcTotal(), items, clientName: clientName.trim() || 'Cliente en Tienda', paymentMethod })
@@ -89,7 +91,7 @@ const Sales = () => {
   const del = async () => {
     setSaving(true); setErr('');
     try {
-      const r = await fetch(`/api/sales/${deleting.id}`, { method: 'DELETE' });
+      const r = await authFetch(`/api/sales/${deleting.id}`, { method: 'DELETE' });
       if (!r.ok) { const e = await r.json(); throw new Error(e.error); }
       toast('Venta eliminada (stock restaurado)');
       setShowDel(false); load();

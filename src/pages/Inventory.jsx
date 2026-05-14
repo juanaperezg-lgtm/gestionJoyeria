@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Edit, Trash2, Package, AlertTriangle, CheckCircle } from 'lucide-react';
 import Card from '../components/UI/Card';
 import Modal from '../components/UI/Modal';
+import { useAuth } from '../context/AuthContext';
 import './Inventory.css';
 
 const API = '/api/inventory';
 const CATS = ['Anillos', 'Collares', 'Pulseras', 'Aretes', 'Relojes', 'Cadenas', 'Dijes', 'Broches', 'Otro'];
 const empty = { sku: '', name: '', category: 'Anillos', description: '', price: '', cost: '', stock: '' };
 
-const Inventory = () => {
+const Inventory = () =>居  const { authFetch } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -30,7 +31,7 @@ const Inventory = () => {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const r = await fetch(API);
+      const r = await authFetch(API);
       if (!r.ok) throw new Error('Error al cargar');
       setItems(await r.json());
     } catch (e) { toast(e.message, 'error'); }
@@ -55,7 +56,7 @@ const Inventory = () => {
     if (isNaN(d.price) || d.price < 0) { setErr('Precio inválido.'); setSaving(false); return; }
     if (isNaN(d.cost) || d.cost < 0) { setErr('Costo inválido.'); setSaving(false); return; }
     try {
-      const r = await fetch(editing ? `${API}/${editing.id}` : API, { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
+      const r = await authFetch(editing ? `${API}/${editing.id}` : API, { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
       if (!r.ok) { const e = await r.json(); throw new Error(e.error); }
       toast(editing ? 'Producto actualizado' : 'Producto creado');
       setShowForm(false); load();
@@ -65,7 +66,7 @@ const Inventory = () => {
   const del = async () => {
     setSaving(true); setErr('');
     try {
-      const r = await fetch(`${API}/${deleting.id}`, { method: 'DELETE' });
+      const r = await authFetch(`${API}/${deleting.id}`, { method: 'DELETE' });
       if (!r.ok) { const e = await r.json(); throw new Error(e.error); }
       toast('Producto eliminado'); setShowDel(false); load();
     } catch (e) { setErr(e.message); } finally { setSaving(false); }

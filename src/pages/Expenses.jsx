@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Trash2, Wallet, AlertTriangle, CheckCircle } from 'lucide-react';
 import Card from '../components/UI/Card';
 import Modal from '../components/UI/Modal';
+import { useAuth } from '../context/AuthContext';
 
 const EXPENSE_CATS = ['Operativos', 'Proveedores', 'Salarios', 'Servicios', 'Marketing', 'Mantenimiento', 'Impuestos', 'Otro'];
 
 const Expenses = () => {
+  const { authFetch } = useAuth();
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -27,7 +29,7 @@ const Expenses = () => {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const [eRes, sRes] = await Promise.all([fetch('/api/expenses'), fetch('/api/dashboard/stats')]);
+      const [eRes, sRes] = await Promise.all([authFetch('/api/expenses'), authFetch('/api/dashboard/stats')]);
       if (!eRes.ok) throw new Error('Error al cargar gastos');
       const expensesData = await eRes.json();
       setExpenses(expensesData);
@@ -55,7 +57,7 @@ const Expenses = () => {
     if (!d.description || !d.category) { setErr('Descripción y categoría son obligatorios.'); setSaving(false); return; }
     if (isNaN(d.amount) || d.amount <= 0) { setErr('El monto debe ser mayor a 0.'); setSaving(false); return; }
     try {
-      const r = await fetch('/api/expenses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
+      const r = await authFetch('/api/expenses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
       if (!r.ok) { const e = await r.json(); throw new Error(e.error); }
       toast('Gasto registrado exitosamente');
       setShowForm(false); load();
@@ -65,7 +67,7 @@ const Expenses = () => {
   const del = async () => {
     setSaving(true); setErr('');
     try {
-      const r = await fetch(`/api/expenses/${deleting.id}`, { method: 'DELETE' });
+      const r = await authFetch(`/api/expenses/${deleting.id}`, { method: 'DELETE' });
       if (!r.ok) { const e = await r.json(); throw new Error(e.error); }
       toast('Gasto eliminado');
       setShowDel(false); load();
