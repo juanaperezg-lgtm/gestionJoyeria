@@ -275,3 +275,158 @@ button:disabled {
   cursor: not-allowed;
   pointer-events: none;
 }
+
+/* ============================================================
+   MOBILE RESPONSIVENESS
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Layout */
+  .main-content {
+    margin-left: 0 !important;
+    margin-bottom: 65px !important;
+  }
+  .page-content {
+    padding: 15px !important;
+  }
+  
+  /* Sidebar -> Bottom Navigation */
+  .sidebar {
+    width: 100% !important;
+    height: 65px !important;
+    top: auto !important;
+    bottom: 0 !important;
+    flex-direction: row !important;
+    padding: 0 !important;
+    z-index: 1000 !important;
+    border-right: none !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    align-items: center !important;
+  }
+  .sidebar-logo {
+    display: none !important;
+  }
+  .sidebar-nav {
+    flex: 1;
+    height: 100%;
+  }
+  .sidebar-nav ul {
+    display: flex !important;
+    justify-content: space-around !important;
+    height: 100% !important;
+    align-items: center;
+  }
+  .sidebar-nav li {
+    margin: 0 !important;
+    flex: 1;
+  }
+  .nav-link {
+    flex-direction: column !important;
+    padding: 8px 0 !important;
+    gap: 4px !important;
+    justify-content: center !important;
+    border-left: none !important;
+    border-top: 3px solid transparent !important;
+    height: 100%;
+  }
+  .nav-link.active {
+    background-color: rgba(212, 175, 55, 0.05) !important;
+    border-top-color: var(--color-gold) !important;
+  }
+  .nav-text {
+    font-size: 0.65rem !important;
+  }
+
+  .sidebar-footer {
+    padding: 0 10px !important;
+    margin: 0 !important;
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .logout-btn {
+    padding: 8px 0 !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    justify-content: center !important;
+    height: 100%;
+  }
+  .logout-btn span {
+    font-size: 0.65rem !important;
+  }
+
+  /* Header */
+  .header {
+    padding: 0 15px !important;
+    height: 60px !important;
+  }
+  .header-search {
+    width: 160px !important;
+    padding: 6px 10px !important;
+  }
+  .search-input {
+    font-size: 0.8rem !important;
+  }
+  .user-info {
+    display: none !important;
+  }
+  .header-actions {
+    gap: 12px !important;
+  }
+  .notif-dropdown {
+    width: 300px !important;
+    right: -50px !important; 
+  }
+
+  /* Tables */
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    width: 100% !important;
+    margin-bottom: 1rem !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+    border-radius: 8px;
+    padding-bottom: 5px;
+  }
+  .luxury-table {
+    min-width: 700px !important; /* Forces scroll */
+  }
+  .luxury-table th, .luxury-table td {
+    padding: 12px 10px !important;
+    font-size: 0.85rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* Cards & Forms */
+  .card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .d-flex-between {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .btn-primary, .btn-outline {
+    width: 100% !important;
+    text-align: center !important;
+  }
+  .action-buttons {
+    flex-wrap: wrap;
+  }
+
+  /* Dashboard Stats Grid */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Modals */
+  .modal-content {
+    width: 95% !important;
+    margin: 20px auto !important;
+    padding: 20px !important;
+  }
+}

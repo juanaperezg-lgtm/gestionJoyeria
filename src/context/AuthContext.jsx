@@ -13,6 +13,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(() => localStorage.getItem('auth_token'));
 
+  const API_URL = import.meta.env.VITE_API_URL || '';
+
   // Helper to make authenticated API calls
   const authFetch = useCallback(async (url, options = {}) => {
     const currentToken = localStorage.getItem('auth_token');
@@ -23,7 +25,7 @@ export const AuthProvider = ({ children }) => {
     if (options.body && typeof options.body === 'string') {
       headers['Content-Type'] = headers['Content-Type'] || 'application/json';
     }
-    const res = await fetch(url, { ...options, headers });
+    const res = await fetch(`${API_URL}${url}`, { ...options, headers });
     if (res.status === 401) {
       // Token expired or invalid
       localStorage.removeItem('auth_token');
@@ -40,7 +42,7 @@ export const AuthProvider = ({ children }) => {
     const verify = async () => {
       if (!token) { setLoading(false); return; }
       try {
-        const res = await fetch('/api/auth/me', {
+        const res = await fetch(`${API_URL}/api/auth/me`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -63,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (username, password) => {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
