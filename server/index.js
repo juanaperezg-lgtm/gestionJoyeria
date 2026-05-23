@@ -28,13 +28,9 @@ app.use('/api/sales', authMiddleware, require('./routes/sales'));
 app.use('/api/expenses', authMiddleware, require('./routes/expenses'));
 app.use('/api/dashboard', authMiddleware, require('./routes/dashboard'));
 
-const path = require('path');
-// Sirve los archivos estáticos del frontend en producción
-app.use(express.static(path.join(__dirname, '../dist')));
-
-// Cualquier ruta que no sea de la API (/api/*), sirve el index.html de React
+// Fallback route para cualquier petición que no sea de la API
 app.use((req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
+  res.status(200).json({ message: 'Aura Joyeros API is running perfectly! 💎' });
 });
 
 const PORT = process.env.PORT || 3001;
